@@ -24,6 +24,8 @@ import {
   Quote
 } from "lucide-react"
 import { toast } from "sonner"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { ThemeToggle } from "@/components/theme-toggle"
 
 interface Bookmark {
   id: string
@@ -100,6 +102,8 @@ export default function MockDashboardPage() {
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid")
   const [selectedCategory, setSelectedCategory] = useState<string>("all")
   const [error, setError] = useState<string | null>(null)
+  const [rateLimitsOpen, setRateLimitsOpen] = useState(false)
+  const [userInfoOpen, setUserInfoOpen] = useState(false)
 
   const categories = ["all", "Tech", "Business", "Education", "Creative", "Health", "Lifestyle", "Entertainment"]
 
@@ -212,18 +216,85 @@ export default function MockDashboardPage() {
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-foreground">Mock Dashboard</h1>
+            <h1 className="text-3xl font-bold text-foreground">BookmarkHQ – Mock Dashboard</h1>
             <p className="text-muted-foreground">Testing X.com API functionality with mock data</p>
           </div>
           <div className="flex items-center gap-2">
-            <Button variant="outline" onClick={fetchRateLimits}>
-              <Clock className="mr-2 h-4 w-4" />
-              Rate Limits
-            </Button>
+            {/* Profile Modal */}
+            <Dialog open={userInfoOpen} onOpenChange={setUserInfoOpen}>
+              <DialogTrigger asChild>
+                <Button variant="outline" onClick={() => setUserInfoOpen(true)}>
+                  <User className="mr-2 h-4 w-4" />
+                  Profile
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-md">
+                <DialogHeader>
+                  <DialogTitle className="flex items-center gap-2">
+                    <User className="h-5 w-5" />
+                    User Information
+                  </DialogTitle>
+                </DialogHeader>
+                {userInfo ? (
+                  <div className="flex items-center gap-4 mt-4">
+                    <img 
+                      src={userInfo.profile_image_url} 
+                      alt={userInfo.name}
+                      className="w-16 h-16 rounded-full"
+                    />
+                    <div>
+                      <h3 className="text-lg font-semibold flex items-center gap-2">
+                        {userInfo.name}
+                        {userInfo.verified && <Badge variant="secondary">Verified</Badge>}
+                      </h3>
+                      <p className="text-muted-foreground">@{userInfo.username}</p>
+                      <div className="flex gap-4 mt-2 text-sm">
+                        <span>{formatNumber(userInfo.public_metrics.followers_count)} Followers</span>
+                        <span>{formatNumber(userInfo.public_metrics.following_count)} Following</span>
+                        <span>{formatNumber(userInfo.public_metrics.tweet_count)} Tweets</span>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="text-center text-muted-foreground py-4">No user info data.</div>
+                )}
+              </DialogContent>
+            </Dialog>
+            {/* Rate Limits Modal */}
+            <Dialog open={rateLimitsOpen} onOpenChange={setRateLimitsOpen}>
+              <DialogTrigger asChild>
+                <Button variant="outline" onClick={() => setRateLimitsOpen(true)}>
+                  <Clock className="mr-2 h-4 w-4" />
+                  Rate Limits
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-md">
+                <DialogHeader>
+                  <DialogTitle className="flex items-center gap-2">
+                    <Clock className="h-5 w-5" />
+                    Rate Limits
+                  </DialogTitle>
+                </DialogHeader>
+                {rateLimits ? (
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
+                    {Object.entries(rateLimits).map(([endpoint, limits]) => (
+                      <div key={endpoint} className="text-center">
+                        <h4 className="font-medium capitalize">{endpoint}</h4>
+                        <p className="text-2xl font-bold text-green-600">{limits.remaining}</p>
+                        <p className="text-xs text-muted-foreground">of {limits.limit}</p>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center text-muted-foreground py-4">No rate limit data.</div>
+                )}
+              </DialogContent>
+            </Dialog>
             <Button onClick={refreshBookmarks} disabled={isRefreshing}>
               <RefreshCw className={`mr-2 h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
               Refresh
             </Button>
+            <ThemeToggle />
           </div>
         </div>
 
@@ -273,62 +344,6 @@ export default function MockDashboardPage() {
             </CardContent>
           </Card>
         </div>
-
-        {/* User Info */}
-        {userInfo && (
-          <Card className="mb-8">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <User className="h-5 w-5" />
-                User Information
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center gap-4">
-                <img 
-                  src={userInfo.profile_image_url} 
-                  alt={userInfo.name}
-                  className="w-16 h-16 rounded-full"
-                />
-                <div>
-                  <h3 className="text-lg font-semibold flex items-center gap-2">
-                    {userInfo.name}
-                    {userInfo.verified && <Badge variant="secondary">Verified</Badge>}
-                  </h3>
-                  <p className="text-muted-foreground">@{userInfo.username}</p>
-                  <div className="flex gap-4 mt-2 text-sm">
-                    <span>{formatNumber(userInfo.public_metrics.followers_count)} Followers</span>
-                    <span>{formatNumber(userInfo.public_metrics.following_count)} Following</span>
-                    <span>{formatNumber(userInfo.public_metrics.tweet_count)} Tweets</span>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Rate Limits */}
-        {rateLimits && (
-          <Card className="mb-8">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Clock className="h-5 w-5" />
-                Rate Limits
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                {Object.entries(rateLimits).map(([endpoint, limits]) => (
-                  <div key={endpoint} className="text-center">
-                    <h4 className="font-medium capitalize">{endpoint}</h4>
-                    <p className="text-2xl font-bold text-green-600">{limits.remaining}</p>
-                    <p className="text-xs text-muted-foreground">of {limits.limit}</p>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        )}
 
         {/* Search */}
         <Card className="mb-8">
