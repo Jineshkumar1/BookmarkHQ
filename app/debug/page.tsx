@@ -149,8 +149,8 @@ export default function DebugPage() {
                 <div>
                   <h4 className="font-medium mb-2">If you're stuck in a redirect loop:</h4>
                   <ul className="text-sm text-muted-foreground space-y-1">
-                    <li>• Check your X.com app callback URL is set to: <code>http://localhost:3001/api/auth/callback/twitter</code></li>
-                    <li>• Make sure NEXTAUTH_URL in .env.local is: <code>http://localhost:3001</code></li>
+                    <li>• Check your X.com app callback URL is set to: <code>http://localhost:3000/api/auth/callback/twitter</code></li>
+                    <li>• Make sure NEXTAUTH_URL in .env.local is: <code>http://localhost:3000</code></li>
                     <li>• Clear your browser cookies and try again</li>
                   </ul>
                 </div>
@@ -160,6 +160,14 @@ export default function DebugPage() {
                     <li>• Verify your TWITTER_CLIENT_ID and TWITTER_CLIENT_SECRET are correct</li>
                     <li>• Check your X.com app has the right permissions</li>
                     <li>• Make sure your app is approved for the required scopes</li>
+                  </ul>
+                </div>
+                <div>
+                  <h4 className="font-medium mb-2">If you see module errors:</h4>
+                  <ul className="text-sm text-muted-foreground space-y-1">
+                    <li>• Clear the .next folder: <code>Remove-Item -Recurse -Force .next</code></li>
+                    <li>• Restart the dev server: <code>npm run dev</code></li>
+                    <li>• Check that all environment variables are set in .env.local</li>
                   </ul>
                 </div>
               </div>

@@ -40,6 +40,17 @@ CREATE TABLE IF NOT EXISTS bookmarks (
     UNIQUE(user_id, tweet_id)
 );
 
+-- Bookmarks cache table for each user
+CREATE TABLE IF NOT EXISTS bookmarks_cache (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id text NOT NULL,
+  data jsonb NOT NULL,
+  last_synced_at timestamptz NOT NULL DEFAULT now()
+);
+
+-- Optional: index for fast lookup
+CREATE INDEX IF NOT EXISTS idx_bookmarks_user_id ON bookmarks(user_id);
+
 -- Categories table for organizing bookmarks
 CREATE TABLE IF NOT EXISTS categories (
     id SERIAL PRIMARY KEY,

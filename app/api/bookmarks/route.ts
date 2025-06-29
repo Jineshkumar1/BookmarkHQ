@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { getServerSession } from "next-auth/next"
 import { authOptions } from "@/lib/auth"
 import { createXApiClient, processBookmarkData } from "@/lib/x-api"
+import { createClient } from '@supabase/supabase-js'
 
 export async function GET(request: NextRequest) {
   console.log("API: Bookmarks request received")
@@ -21,27 +22,52 @@ export async function GET(request: NextRequest) {
     }
 
     const { searchParams } = new URL(request.url)
-    const maxResults = parseInt(searchParams.get("maxResults") || "10") // Reduced default to avoid rate limits
+    const maxResults = parseInt(searchParams.get("maxResults") || "10")
     const paginationToken = searchParams.get("paginationToken")
+    const forceRefresh = searchParams.get("forceRefresh") === "true"
     
-    console.log("API: Request params:", { maxResults, paginationToken })
+    console.log("API: Request params:", { maxResults, paginationToken, forceRefresh })
 
-    // Limit maxResults to prevent rate limiting
-    const safeMaxResults = Math.min(maxResults, 20)
-    console.log("API: Safe max results:", safeMaxResults)
+    // Supabase client (server-side only)
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    )
 
-    // Create X API client
+    // Get user info
     const xApiClient = createXApiClient(session)
-    console.log("API: X API client created")
-
-    // Get current user info
-    console.log("API: Getting user info...")
     const userInfo = await xApiClient.getMe()
     const userId = userInfo.data.id
     console.log("API: User ID:", userId)
 
-    // Fetch bookmarks with enhanced media fields
-    console.log("API: Fetching bookmarks...")
+    // 1. Check cache (if not forceRefresh and no pagination)
+    if (!forceRefresh && !paginationToken) {
+      const { data: cache, error: cacheError } = await supabase
+        .from('bookmarks_cache')
+        .select('*')
+        .eq('user_id', userId)
+        .single()
+      if (cache && cache.last_synced_at) {
+        const now = new Date()
+        const lastSynced = new Date(cache.last_synced_at)
+        const cacheIsFresh = (now.getTime() - lastSynced.getTime()) < 60 * 60 * 1000 // 1 hour
+        if (cacheIsFresh) {
+          console.log("API: Serving bookmarks from cache")
+          return NextResponse.json({
+            bookmarks: cache.data.bookmarks,
+            meta: cache.data.meta,
+            user: userInfo.data,
+            rateLimitInfo: { source: 'cache' },
+            cached: true,
+            last_synced_at: cache.last_synced_at
+          })
+        }
+      }
+    }
+
+    // 2. Fetch from Twitter
+    const safeMaxResults = Math.min(maxResults, 20)
+    console.log("API: Safe max results:", safeMaxResults)
     const bookmarksResponse = await xApiClient.getBookmarks(userId, {
       maxResults: safeMaxResults,
       paginationToken: paginationToken || undefined,
@@ -69,6 +95,15 @@ export async function GET(request: NextRequest) {
     const processedBookmarks = processBookmarkData(bookmarksResponse)
     console.log("API: Processed bookmarks:", processedBookmarks.length)
 
+    // 3. Upsert cache (only if not paginated)
+    if (!paginationToken) {
+      await supabase.from('bookmarks_cache').upsert({
+        user_id: userId,
+        data: { bookmarks: processedBookmarks, meta: bookmarksResponse.meta },
+        last_synced_at: new Date().toISOString(),
+      })
+    }
+
     return NextResponse.json({
       bookmarks: processedBookmarks,
       meta: bookmarksResponse.meta,
@@ -76,7 +111,10 @@ export async function GET(request: NextRequest) {
       rateLimitInfo: {
         remaining: bookmarksResponse.meta?.result_count || 0,
         maxResults: safeMaxResults,
+        source: 'twitter',
       },
+      cached: false,
+      last_synced_at: new Date().toISOString(),
     })
   } catch (error) {
     console.error("API: Error fetching bookmarks:", error)
