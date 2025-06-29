@@ -42,21 +42,6 @@ export default function DashboardPage() {
   const [error, setError] = useState<string | null>(null)
   const [rateLimitInfo, setRateLimitInfo] = useState<any>(null)
 
-  if (status === "loading") {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="text-center">
-          <RefreshCw className="h-8 w-8 animate-spin mx-auto mb-4" />
-          <p className="text-muted-foreground">Loading...</p>
-        </div>
-      </div>
-    )
-  }
-
-  if (!session) {
-    redirect("/auth/signin")
-  }
-
   // Available categories for filtering
   const categories = ["all", "Tech", "Education", "Business", "Entertainment", "Sports", "General"]
 
@@ -109,8 +94,10 @@ export default function DashboardPage() {
 
   // Load bookmarks on component mount with reduced count
   useEffect(() => {
-    fetchBookmarks(10) // Start with fewer bookmarks to avoid rate limits
-  }, [])
+    if (session) {
+      fetchBookmarks(10) // Start with fewer bookmarks to avoid rate limits
+    }
+  }, [session])
 
   // Filter bookmarks based on selected category
   const filteredBookmarks = selectedCategory === "all" 
@@ -119,6 +106,21 @@ export default function DashboardPage() {
 
   const handleCategoryChange = (category: string) => {
     setSelectedCategory(category)
+  }
+
+  if (status === "loading") {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="text-center">
+          <RefreshCw className="h-8 w-8 animate-spin mx-auto mb-4" />
+          <p className="text-muted-foreground">Loading...</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (!session) {
+    redirect("/auth/signin")
   }
 
   return (
