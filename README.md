@@ -1,18 +1,11 @@
 # BookmarkHQ - X.com Bookmark Manager
 
 <p align="center">
-  <img src="./BookMarkHQ.png" alt="BookMarkHQ Logo" width="180">
+  <img src="./public/BookMarkHQ.png" alt="BookMarkHQ Logo" width="180">
 </p>
 
 <p align="center">
-  <a href="https://www.youtube.com/watch?v=YOUR_VIDEO_ID">
-    <img src="./BookMarkHQ.png" alt="Watch the demo" width="320"><br>
-    <strong>▶️ Watch Demo Video</strong>
-  </a>
-</p>
-
-<p align="center">
-  <a href="./BookmarkHQ-Demo.webm">
+  <a href="./public/BookmarkHQ-Demo.webm">
     <strong>⬇️ Download Demo Video (WEBM)</strong>
   </a>
 </p>
