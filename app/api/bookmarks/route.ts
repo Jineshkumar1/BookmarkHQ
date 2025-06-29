@@ -2,7 +2,13 @@ import { NextRequest, NextResponse } from "next/server"
 import { getServerSession } from "next-auth/next"
 import { authOptions } from "@/lib/auth"
 import { createXApiClient, processBookmarkData } from "@/lib/x-api"
-import { createClient } from '@supabase/supabase-js'
+import { 
+  supabase, 
+  getCachedBookmarks, 
+  updateBookmarkCache, 
+  logSync, 
+  isCacheFresh 
+} from "@/lib/supabase"
 
 export async function GET(request: NextRequest) {
   console.log("API: Bookmarks request received")
@@ -28,12 +34,6 @@ export async function GET(request: NextRequest) {
     
     console.log("API: Request params:", { maxResults, paginationToken, forceRefresh })
 
-    // Supabase client (server-side only)
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
-    )
-
     // Get user info
     const xApiClient = createXApiClient(session)
     const userInfo = await xApiClient.getMe()
@@ -42,32 +42,30 @@ export async function GET(request: NextRequest) {
 
     // 1. Check cache (if not forceRefresh and no pagination)
     if (!forceRefresh && !paginationToken) {
-      const { data: cache, error: cacheError } = await supabase
-        .from('bookmarks_cache')
-        .select('*')
-        .eq('user_id', userId)
-        .single()
-      if (cache && cache.last_synced_at) {
-        const now = new Date()
-        const lastSynced = new Date(cache.last_synced_at)
-        const cacheIsFresh = (now.getTime() - lastSynced.getTime()) < 60 * 60 * 1000 // 1 hour
-        if (cacheIsFresh) {
-          console.log("API: Serving bookmarks from cache")
-          return NextResponse.json({
-            bookmarks: cache.data.bookmarks,
-            meta: cache.data.meta,
-            user: userInfo.data,
-            rateLimitInfo: { source: 'cache' },
-            cached: true,
-            last_synced_at: cache.last_synced_at
-          })
-        }
+      const cachedData = await getCachedBookmarks(userId)
+      
+      if (cachedData && isCacheFresh(cachedData.last_synced_at)) {
+        console.log("API: Serving bookmarks from cache")
+        await logSync(userId, 'manual', 'success', { 
+          bookmarksAdded: 0, 
+          bookmarksUpdated: 0 
+        })
+        
+        return NextResponse.json({
+          bookmarks: cachedData.data.bookmarks,
+          meta: cachedData.data.meta,
+          user: userInfo.data,
+          rateLimitInfo: { source: 'cache' },
+          cached: true,
+          last_synced_at: cachedData.last_synced_at
+        })
       }
     }
 
     // 2. Fetch from Twitter
     const safeMaxResults = Math.min(maxResults, 20)
     console.log("API: Safe max results:", safeMaxResults)
+    
     const bookmarksResponse = await xApiClient.getBookmarks(userId, {
       maxResults: safeMaxResults,
       paginationToken: paginationToken || undefined,
@@ -95,13 +93,19 @@ export async function GET(request: NextRequest) {
     const processedBookmarks = processBookmarkData(bookmarksResponse)
     console.log("API: Processed bookmarks:", processedBookmarks.length)
 
-    // 3. Upsert cache (only if not paginated)
+    // 3. Update cache (only if not paginated)
     if (!paginationToken) {
-      await supabase.from('bookmarks_cache').upsert({
-        user_id: userId,
-        data: { bookmarks: processedBookmarks, meta: bookmarksResponse.meta },
-        last_synced_at: new Date().toISOString(),
-      })
+      try {
+        await updateBookmarkCache(userId, processedBookmarks, bookmarksResponse.meta)
+        await logSync(userId, 'manual', 'success', { 
+          bookmarksAdded: processedBookmarks.length, 
+          bookmarksUpdated: 0 
+        })
+        console.log("API: Cache updated successfully")
+      } catch (cacheError) {
+        console.error("API: Cache update failed:", cacheError)
+        // Don't fail the request if cache update fails
+      }
     }
 
     return NextResponse.json({
@@ -118,6 +122,20 @@ export async function GET(request: NextRequest) {
     })
   } catch (error) {
     console.error("API: Error fetching bookmarks:", error)
+    
+    // Log sync error if we have a session
+    try {
+      const session = await getServerSession(authOptions)
+      if (session?.accessToken) {
+        const xApiClient = createXApiClient(session)
+        const userInfo = await xApiClient.getMe()
+        await logSync(userInfo.data.id, 'manual', 'error', { 
+          errorMessage: error instanceof Error ? error.message : 'Unknown error' 
+        })
+      }
+    } catch (logError) {
+      console.error("API: Failed to log sync error:", logError)
+    }
     
     if (error instanceof Error) {
       if (error.message.includes("Rate limit exceeded")) {
@@ -163,6 +181,16 @@ export async function POST(request: NextRequest) {
     // Add bookmark
     await xApiClient.addBookmark(userId, tweetId)
 
+    // Clear cache to force refresh on next request
+    try {
+      await supabase
+        .from('bookmarks_cache')
+        .delete()
+        .eq('user_id', userId)
+    } catch (cacheError) {
+      console.error("Failed to clear cache after adding bookmark:", cacheError)
+    }
+
     return NextResponse.json({ success: true })
   } catch (error) {
     console.error("Error adding bookmark:", error)
@@ -191,6 +219,16 @@ export async function DELETE(request: NextRequest) {
 
     // Remove bookmark
     await xApiClient.removeBookmark(userId, tweetId)
+
+    // Clear cache to force refresh on next request
+    try {
+      await supabase
+        .from('bookmarks_cache')
+        .delete()
+        .eq('user_id', userId)
+    } catch (cacheError) {
+      console.error("Failed to clear cache after removing bookmark:", cacheError)
+    }
 
     return NextResponse.json({ success: true })
   } catch (error) {

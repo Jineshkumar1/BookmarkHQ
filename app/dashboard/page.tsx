@@ -7,6 +7,7 @@ import { Navbar } from "@/components/navbar"
 import { BookmarkCard } from "@/components/bookmark-card"
 import { BookmarkFilters } from "@/components/bookmark-filters"
 import { StatsOverview } from "@/components/stats-overview"
+import { CacheStatus } from "@/components/cache-status"
 import { Button } from "@/components/ui/button"
 import { RefreshCw, Bookmark, AlertCircle, Clock } from "lucide-react"
 import { toast } from "sonner"
@@ -46,14 +47,15 @@ export default function DashboardPage() {
   const categories = ["all", "Tech", "Education", "Business", "Entertainment", "Sports", "General"]
 
   // Fetch bookmarks from API with rate limit handling
-  const fetchBookmarks = async (maxResults = 20) => {
-    console.log("Fetching bookmarks with maxResults:", maxResults)
+  const fetchBookmarks = async (maxResults = 20, forceRefresh = false) => {
+    console.log("Fetching bookmarks with maxResults:", maxResults, "forceRefresh:", forceRefresh)
     setIsLoading(true)
     setError(null)
     setRateLimitInfo(null)
     
     try {
-      const response = await fetch(`/api/bookmarks?maxResults=${maxResults}`)
+      const url = `/api/bookmarks?maxResults=${maxResults}${forceRefresh ? '&forceRefresh=true' : ''}`
+      const response = await fetch(url)
       console.log("API Response status:", response.status)
       
       if (!response.ok) {
@@ -76,7 +78,8 @@ export default function DashboardPage() {
       setRateLimitInfo(data.rateLimitInfo)
       
       if (data.bookmarks?.length > 0) {
-        toast.success(`Fetched ${data.bookmarks.length} bookmarks`)
+        const source = data.cached ? 'cache' : 'X.com API'
+        toast.success(`Fetched ${data.bookmarks.length} bookmarks from ${source}`)
       } else {
         toast.info("No bookmarks found")
       }
@@ -90,10 +93,10 @@ export default function DashboardPage() {
     }
   }
 
-  // Sync bookmarks (same as fetch for now)
+  // Sync bookmarks (force refresh from X.com)
   const syncBookmarks = async () => {
     setIsSyncing(true)
-    await fetchBookmarks(20) // Increased to get more bookmarks
+    await fetchBookmarks(20, true) // Force refresh from X.com
     setIsSyncing(false)
   }
 
@@ -101,7 +104,7 @@ export default function DashboardPage() {
   useEffect(() => {
     if (session) {
       console.log("Session available, fetching bookmarks...")
-      fetchBookmarks(20) // Increased to get more bookmarks
+      fetchBookmarks(20) // Use cache if available
     } else {
       console.log("No session available yet")
     }
@@ -139,14 +142,16 @@ export default function DashboardPage() {
         <div className="flex flex-col lg:flex-row gap-8">
           {/* Sidebar */}
           <div className="lg:w-1/4">
-            <div className="sticky top-8">
+            <div className="sticky top-8 space-y-6">
               <BookmarkFilters 
                 categories={categories}
                 selectedCategory={selectedCategory}
                 onCategoryChange={handleCategoryChange}
               />
               
-              <div className="mt-6">
+              <CacheStatus />
+              
+              <div>
                 <Button 
                   className="w-full" 
                   variant="outline"
@@ -154,21 +159,24 @@ export default function DashboardPage() {
                   disabled={isSyncing}
                 >
                   <RefreshCw className={`mr-2 h-4 w-4 ${isSyncing ? 'animate-spin' : ''}`} />
-                  {isSyncing ? 'Syncing...' : 'Sync Bookmarks'}
+                  {isSyncing ? 'Syncing...' : 'Sync from X.com'}
                 </Button>
               </div>
 
               {rateLimitInfo && (
-                <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+                <div className="p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
                   <div className="flex items-center gap-2 text-blue-600 dark:text-blue-400">
                     <Clock className="h-4 w-4" />
                     <p className="text-sm">Fetched {rateLimitInfo.remaining} of {rateLimitInfo.maxResults} bookmarks</p>
+                    {rateLimitInfo.source && (
+                      <p className="text-xs">Source: {rateLimitInfo.source}</p>
+                    )}
                   </div>
                 </div>
               )}
 
               {error && (
-                <div className="mt-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+                <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
                   <div className="flex items-center gap-2 text-red-600 dark:text-red-400">
                     <AlertCircle className="h-4 w-4" />
                     <p className="text-sm">{error}</p>
@@ -177,7 +185,7 @@ export default function DashboardPage() {
               )}
 
               {/* Debug Info */}
-              <div className="mt-4 p-3 bg-gray-50 dark:bg-gray-900/20 border border-gray-200 dark:border-gray-800 rounded-lg">
+              <div className="p-3 bg-gray-50 dark:bg-gray-900/20 border border-gray-200 dark:border-gray-800 rounded-lg">
                 <p className="text-xs text-gray-600 dark:text-gray-400">
                   Debug: {bookmarks.length} bookmarks loaded
                 </p>

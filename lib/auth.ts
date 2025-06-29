@@ -20,6 +20,30 @@ export const authOptions: NextAuthOptions = {
         params: {
           "user.fields": "id,name,username,profile_image_url,public_metrics,verified",
         },
+        async request({ tokens, provider }) {
+          try {
+            const response = await fetch(provider.userinfo?.url!, {
+              headers: {
+                Authorization: `Bearer ${tokens.access_token}`,
+              },
+            })
+
+            if (response.status === 429) {
+              console.error("Rate limit exceeded during userinfo request")
+              throw new Error("Rate limit exceeded. Please wait 15 minutes before trying again.")
+            }
+
+            if (!response.ok) {
+              console.error(`Userinfo request failed: ${response.status} ${response.statusText}`)
+              throw new Error(`Failed to fetch user info: ${response.status}`)
+            }
+
+            return response.json()
+          } catch (error) {
+            console.error("Error in userinfo request:", error)
+            throw error
+          }
+        },
       },
     }),
   ],
@@ -67,5 +91,20 @@ export const authOptions: NextAuthOptions = {
   secret: process.env.NEXTAUTH_SECRET,
   session: {
     strategy: "jwt",
+  },
+  events: {
+    async signIn({ user, account, profile, isNewUser }) {
+      console.log("Sign in successful:", { 
+        userId: user.id, 
+        provider: account?.provider,
+        isNewUser 
+      })
+    },
+    async signOut({ session, token }) {
+      console.log("Sign out:", { sessionId: session?.id })
+    },
+    async error(error) {
+      console.error("NextAuth error:", error)
+    },
   },
 }
