@@ -25,6 +25,12 @@ export const authOptions: NextAuthOptions = {
   ],
   callbacks: {
     async jwt({ token, account, profile }) {
+      console.log("JWT Callback:", { 
+        hasAccount: !!account, 
+        hasProfile: !!profile,
+        tokenKeys: Object.keys(token)
+      })
+      
       if (account && profile) {
         token.accessToken = account.access_token
         token.refreshToken = account.refresh_token
@@ -36,6 +42,12 @@ export const authOptions: NextAuthOptions = {
       return token
     },
     async session({ session, token }) {
+      console.log("Session Callback:", { 
+        hasToken: !!token,
+        sessionUser: session.user,
+        tokenKeys: Object.keys(token)
+      })
+      
       if (token) {
         session.accessToken = token.accessToken as string
         session.refreshToken = token.refreshToken as string

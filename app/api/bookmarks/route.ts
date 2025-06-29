@@ -4,32 +4,44 @@ import { authOptions } from "@/lib/auth"
 import { createXApiClient, processBookmarkData } from "@/lib/x-api"
 
 export async function GET(request: NextRequest) {
+  console.log("API: Bookmarks request received")
+  
   try {
     const session = await getServerSession(authOptions)
+    console.log("API: Session check result:", !!session)
 
     if (!session) {
+      console.log("API: No session found")
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
     if (!session.accessToken) {
+      console.log("API: No access token found")
       return NextResponse.json({ error: "No access token available" }, { status: 400 })
     }
 
     const { searchParams } = new URL(request.url)
     const maxResults = parseInt(searchParams.get("maxResults") || "10") // Reduced default to avoid rate limits
     const paginationToken = searchParams.get("paginationToken")
+    
+    console.log("API: Request params:", { maxResults, paginationToken })
 
     // Limit maxResults to prevent rate limiting
     const safeMaxResults = Math.min(maxResults, 20)
+    console.log("API: Safe max results:", safeMaxResults)
 
     // Create X API client
     const xApiClient = createXApiClient(session)
+    console.log("API: X API client created")
 
     // Get current user info
+    console.log("API: Getting user info...")
     const userInfo = await xApiClient.getMe()
     const userId = userInfo.data.id
+    console.log("API: User ID:", userId)
 
     // Fetch bookmarks with enhanced media fields
+    console.log("API: Fetching bookmarks...")
     const bookmarksResponse = await xApiClient.getBookmarks(userId, {
       maxResults: safeMaxResults,
       paginationToken: paginationToken || undefined,
@@ -46,9 +58,16 @@ export async function GET(request: NextRequest) {
       userFields: ["id", "name", "username", "profile_image_url", "verified"],
       mediaFields: ["url", "preview_image_url", "type", "width", "height", "alt_text"],
     })
+    
+    console.log("API: Bookmarks response received:", {
+      tweetCount: bookmarksResponse.data?.length || 0,
+      hasIncludes: !!bookmarksResponse.includes,
+      includesKeys: bookmarksResponse.includes ? Object.keys(bookmarksResponse.includes) : []
+    })
 
     // Process the bookmark data
     const processedBookmarks = processBookmarkData(bookmarksResponse)
+    console.log("API: Processed bookmarks:", processedBookmarks.length)
 
     return NextResponse.json({
       bookmarks: processedBookmarks,
@@ -60,7 +79,7 @@ export async function GET(request: NextRequest) {
       },
     })
   } catch (error) {
-    console.error("Error fetching bookmarks:", error)
+    console.error("API: Error fetching bookmarks:", error)
     
     if (error instanceof Error) {
       if (error.message.includes("Rate limit exceeded")) {

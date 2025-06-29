@@ -46,16 +46,19 @@ export default function DashboardPage() {
   const categories = ["all", "Tech", "Education", "Business", "Entertainment", "Sports", "General"]
 
   // Fetch bookmarks from API with rate limit handling
-  const fetchBookmarks = async (maxResults = 10) => {
+  const fetchBookmarks = async (maxResults = 20) => {
+    console.log("Fetching bookmarks with maxResults:", maxResults)
     setIsLoading(true)
     setError(null)
     setRateLimitInfo(null)
     
     try {
       const response = await fetch(`/api/bookmarks?maxResults=${maxResults}`)
+      console.log("API Response status:", response.status)
       
       if (!response.ok) {
         const errorData = await response.json()
+        console.error("API Error:", errorData)
         
         if (response.status === 429) {
           setError("Rate limit exceeded. Please wait 15 minutes before trying again.")
@@ -67,6 +70,8 @@ export default function DashboardPage() {
       }
       
       const data = await response.json()
+      console.log("API Response data:", data)
+      
       setBookmarks(data.bookmarks || [])
       setRateLimitInfo(data.rateLimitInfo)
       
@@ -77,9 +82,9 @@ export default function DashboardPage() {
       }
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to fetch bookmarks'
+      console.error('Error fetching bookmarks:', err)
       setError(errorMessage)
       toast.error(errorMessage)
-      console.error('Error fetching bookmarks:', err)
     } finally {
       setIsLoading(false)
     }
@@ -88,14 +93,17 @@ export default function DashboardPage() {
   // Sync bookmarks (same as fetch for now)
   const syncBookmarks = async () => {
     setIsSyncing(true)
-    await fetchBookmarks(10) // Reduced to avoid rate limits
+    await fetchBookmarks(20) // Increased to get more bookmarks
     setIsSyncing(false)
   }
 
   // Load bookmarks on component mount with reduced count
   useEffect(() => {
     if (session) {
-      fetchBookmarks(10) // Start with fewer bookmarks to avoid rate limits
+      console.log("Session available, fetching bookmarks...")
+      fetchBookmarks(20) // Increased to get more bookmarks
+    } else {
+      console.log("No session available yet")
     }
   }, [session])
 
@@ -167,6 +175,16 @@ export default function DashboardPage() {
                   </div>
                 </div>
               )}
+
+              {/* Debug Info */}
+              <div className="mt-4 p-3 bg-gray-50 dark:bg-gray-900/20 border border-gray-200 dark:border-gray-800 rounded-lg">
+                <p className="text-xs text-gray-600 dark:text-gray-400">
+                  Debug: {bookmarks.length} bookmarks loaded
+                </p>
+                <p className="text-xs text-gray-600 dark:text-gray-400">
+                  Session: {session ? 'Active' : 'None'}
+                </p>
+              </div>
             </div>
           </div>
 
