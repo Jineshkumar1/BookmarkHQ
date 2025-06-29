@@ -16,8 +16,11 @@ export async function GET(request: NextRequest) {
     }
 
     const { searchParams } = new URL(request.url)
-    const maxResults = parseInt(searchParams.get("maxResults") || "10")
+    const maxResults = parseInt(searchParams.get("maxResults") || "10") // Reduced default to avoid rate limits
     const paginationToken = searchParams.get("paginationToken")
+
+    // Limit maxResults to prevent rate limiting
+    const safeMaxResults = Math.min(maxResults, 20)
 
     // Create X API client
     const xApiClient = createXApiClient(session)
@@ -26,10 +29,22 @@ export async function GET(request: NextRequest) {
     const userInfo = await xApiClient.getMe()
     const userId = userInfo.data.id
 
-    // Fetch bookmarks
+    // Fetch bookmarks with enhanced media fields
     const bookmarksResponse = await xApiClient.getBookmarks(userId, {
-      maxResults,
+      maxResults: safeMaxResults,
       paginationToken: paginationToken || undefined,
+      expansions: ["author_id", "attachments.media_keys", "referenced_tweets.id"],
+      tweetFields: [
+        "id",
+        "text",
+        "created_at",
+        "public_metrics",
+        "context_annotations",
+        "entities",
+        "attachments",
+      ],
+      userFields: ["id", "name", "username", "profile_image_url", "verified"],
+      mediaFields: ["url", "preview_image_url", "type", "width", "height", "alt_text"],
     })
 
     // Process the bookmark data
@@ -39,11 +54,21 @@ export async function GET(request: NextRequest) {
       bookmarks: processedBookmarks,
       meta: bookmarksResponse.meta,
       user: userInfo.data,
+      rateLimitInfo: {
+        remaining: bookmarksResponse.meta?.result_count || 0,
+        maxResults: safeMaxResults,
+      },
     })
   } catch (error) {
     console.error("Error fetching bookmarks:", error)
     
     if (error instanceof Error) {
+      if (error.message.includes("Rate limit exceeded")) {
+        return NextResponse.json({ 
+          error: "Rate limit exceeded. Please try again in 15 minutes.",
+          retryAfter: "15 minutes"
+        }, { status: 429 })
+      }
       if (error.message.includes("401")) {
         return NextResponse.json({ error: "Authentication expired. Please sign in again." }, { status: 401 })
       }

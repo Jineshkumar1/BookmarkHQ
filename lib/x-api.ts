@@ -28,6 +28,13 @@ export class XApiClient {
 
     if (!response.ok) {
       const error = await response.json().catch(() => ({}))
+      
+      // Handle rate limiting specifically
+      if (response.status === 429) {
+        const retryAfter = response.headers.get('x-rate-limit-reset')
+        throw new Error(`Rate limit exceeded. Please try again later. (Reset: ${retryAfter})`)
+      }
+      
       throw new Error(`X API Error: ${response.status} - ${error.detail || response.statusText}`)
     }
 
@@ -43,6 +50,7 @@ export class XApiClient {
       expansions?: string[]
       tweetFields?: string[]
       userFields?: string[]
+      mediaFields?: string[]
     } = {},
   ) {
     const params = new URLSearchParams({
@@ -61,7 +69,7 @@ export class XApiClient {
         ]
       ).join(","),
       "user.fields": (options.userFields || ["id", "name", "username", "profile_image_url", "verified"]).join(","),
-      "media.fields": "url,preview_image_url,type,width,height",
+      "media.fields": (options.mediaFields || ["url", "preview_image_url", "type", "width", "height", "alt_text"]).join(","),
     })
 
     return this.makeRequest(`/users/${userId}/bookmarks?${params}`)
@@ -150,10 +158,24 @@ export function processBookmarkData(apiResponse: any) {
 
   return tweets.map((tweet: any) => {
     const author = users.find((user: any) => user.id === tweet.author_id)
-    const tweetMedia =
-      tweet.attachments?.media_keys
-        ?.map((key: string) => media.find((m: any) => m.media_key === key))
-        .filter(Boolean) || []
+    
+    // Enhanced media processing
+    const tweetMedia = tweet.attachments?.media_keys
+      ?.map((key: string) => {
+        const mediaItem = media.find((m: any) => m.media_key === key)
+        if (mediaItem) {
+          return {
+            type: mediaItem.type,
+            url: mediaItem.url || mediaItem.preview_image_url,
+            width: mediaItem.width,
+            height: mediaItem.height,
+            alt_text: mediaItem.alt_text,
+            media_key: mediaItem.media_key,
+          }
+        }
+        return null
+      })
+      .filter(Boolean) || []
 
     return {
       id: tweet.id,
@@ -173,12 +195,7 @@ export function processBookmarkData(apiResponse: any) {
         replies: tweet.public_metrics?.reply_count || 0,
         quotes: tweet.public_metrics?.quote_count || 0,
       },
-      media: tweetMedia.map((m: any) => ({
-        type: m.type,
-        url: m.url || m.preview_image_url,
-        width: m.width,
-        height: m.height,
-      })),
+      media: tweetMedia,
       entities: tweet.entities || {},
       contextAnnotations: tweet.context_annotations || [],
       tags: extractHashtags(tweet.text),
