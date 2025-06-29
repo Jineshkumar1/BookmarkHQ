@@ -104,6 +104,8 @@ export default function MockDashboardPage() {
   const [error, setError] = useState<string | null>(null)
   const [rateLimitsOpen, setRateLimitsOpen] = useState(false)
   const [userInfoOpen, setUserInfoOpen] = useState(false)
+  const [showCategories, setShowCategories] = useState(false)
+  const [selectedSearchCategory, setSelectedSearchCategory] = useState<string | null>(null)
 
   const categories = ["all", "Tech", "Business", "Education", "Creative", "Health", "Lifestyle", "Entertainment"]
 
@@ -189,6 +191,14 @@ export default function MockDashboardPage() {
   const filteredBookmarks = bookmarks.filter(bookmark => 
     selectedCategory === "all" || bookmark.category === selectedCategory
   )
+
+  // Collect all unique categories from bookmarks
+  const allCategories = Array.from(new Set(bookmarks.map(b => b.category)))
+
+  // Filter search results by selected category if set
+  const filteredSearchResults = selectedSearchCategory
+    ? bookmarks.filter(b => b.category === selectedSearchCategory)
+    : searchResults
 
   useEffect(() => {
     fetchBookmarks()
@@ -354,33 +364,63 @@ export default function MockDashboardPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="flex gap-2">
+            <div className="flex gap-2 mb-2">
               <Input
                 placeholder="Search for tweets..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onKeyPress={(e) => e.key === 'Enter' && searchTweets()}
+                disabled={!!selectedSearchCategory}
               />
-              <Button onClick={searchTweets} disabled={isSearching || !searchQuery.trim()}>
+              <Button onClick={searchTweets} disabled={isSearching || !searchQuery.trim() || !!selectedSearchCategory}>
                 <Search className="mr-2 h-4 w-4" />
                 {isSearching ? 'Searching...' : 'Search'}
               </Button>
+              <Button variant={showCategories ? "default" : "outline"} onClick={() => setShowCategories(v => !v)}>
+                {showCategories ? "Hide Categories" : "Show Categories"}
+              </Button>
             </div>
-            
-            {searchResults.length > 0 && (
+            {showCategories && (
+              <div className="flex flex-wrap gap-2 mb-4">
+                {allCategories.map(category => (
+                  <Badge
+                    key={category}
+                    variant={selectedSearchCategory === category ? "default" : "secondary"}
+                    className="cursor-pointer text-base px-3 py-1"
+                    onClick={() => setSelectedSearchCategory(category)}
+                  >
+                    #{category}
+                  </Badge>
+                ))}
+                {selectedSearchCategory && (
+                  <Button size="sm" variant="ghost" onClick={() => setSelectedSearchCategory(null)}>
+                    Clear Filter
+                  </Button>
+                )}
+              </div>
+            )}
+            {selectedSearchCategory && (
+              <div className="mb-2 text-muted-foreground text-sm">
+                Showing bookmarks in <span className="font-semibold">{selectedSearchCategory}</span> category.
+              </div>
+            )}
+            {filteredSearchResults.length > 0 && (
               <div className="mt-4">
-                <h4 className="font-medium mb-2">Search Results ({searchResults.length})</h4>
+                <h4 className="font-medium mb-2">{selectedSearchCategory ? `Bookmarks (${filteredSearchResults.length})` : `Search Results (${filteredSearchResults.length})`}</h4>
                 <div className="space-y-2">
-                  {searchResults.map((tweet) => (
+                  {filteredSearchResults.map((tweet) => (
                     <div key={tweet.id} className="p-3 border rounded-lg">
                       <p className="text-sm">{tweet.text}</p>
                       <p className="text-xs text-muted-foreground mt-1">
-                        {formatDate(tweet.created_at)} • {formatNumber(tweet.public_metrics.likes)} likes
+                        {formatDate(tweet.createdAt || tweet.created_at)} • {formatNumber(tweet.metrics?.likes || tweet.public_metrics?.likes || 0)} likes
                       </p>
                     </div>
                   ))}
                 </div>
               </div>
+            )}
+            {!filteredSearchResults.length && (selectedSearchCategory || searchResults.length > 0) && (
+              <div className="mt-4 text-muted-foreground text-center">No bookmarks found for this category.</div>
             )}
           </CardContent>
         </Card>

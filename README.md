@@ -1,5 +1,17 @@
 # BookmarkHQ - X.com Bookmark Manager
 
+<p align="center">
+  <a href="public/BookMarkHQ.png" target="_blank">
+    <img src="public/BookMarkHQ.png" alt="BookMarkHQ Logo" width="180" style="border-radius:12px;box-shadow:0 2px 8px #0002;">
+  </a>
+</p>
+
+<p align="center">
+  <video src="public/BookmarkHQ-Demo.webm" controls width="480" style="border-radius:12px;box-shadow:0 2px 8px #0002;">
+    Your browser does not support the video tag.
+  </video>
+</p>
+
 A full-stack web application for managing and organizing your X.com (formerly Twitter) bookmarks with intelligent caching and modern UI.
 
 ## Features

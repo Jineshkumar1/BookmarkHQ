@@ -307,6 +307,145 @@ export const mockBookmarks = [
     ],
     tags: ["hiring", "remote", "tech", "careers"],
     category: "Business"
+  },
+  // AWS
+  {
+    id: "mock_tweet_aws_1",
+    text: "🚀 Deployed a scalable serverless app on AWS Lambda and API Gateway! Loving the seamless integration and cost savings. #AWS #Serverless #Cloud",
+    author: {
+      id: "mock_author_aws",
+      name: "Cloud Guru",
+      username: "cloudguru",
+      avatar: "/placeholder-user.jpg",
+      verified: true,
+    },
+    createdAt: "2024-01-05T10:00:00.000Z",
+    bookmarkedAt: "2024-01-05T10:30:00.000Z",
+    metrics: {
+      likes: 320,
+      retweets: 45,
+      replies: 12,
+      quotes: 7,
+    },
+    media: [
+      {
+        type: "photo",
+        url: "https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=800&h=600&fit=crop",
+        width: 800,
+        height: 600,
+        alt_text: "AWS Lambda dashboard screenshot",
+      }
+    ],
+    tags: ["aws", "serverless", "cloud"],
+    category: "AWS"
+  },
+  // Azure
+  {
+    id: "mock_tweet_azure_1",
+    text: "☁️ Migrated our SQL database to Azure SQL Managed Instance. The performance boost is impressive! #Azure #Cloud #Database",
+    author: {
+      id: "mock_author_azure",
+      name: "Azure Ninja",
+      username: "azureninja",
+      avatar: "/placeholder-user.jpg",
+      verified: false,
+    },
+    createdAt: "2024-01-04T14:00:00.000Z",
+    bookmarkedAt: "2024-01-04T14:30:00.000Z",
+    metrics: {
+      likes: 210,
+      retweets: 32,
+      replies: 8,
+      quotes: 3,
+    },
+    media: [],
+    tags: ["azure", "cloud", "database"],
+    category: "Azure"
+  },
+  // GCP
+  {
+    id: "mock_tweet_gcp_1",
+    text: "🚦 Set up CI/CD pipelines with Google Cloud Build and deployed to GKE. The automation is a game changer! #GCP #DevOps #Kubernetes",
+    author: {
+      id: "mock_author_gcp",
+      name: "GCP Engineer",
+      username: "gcpengineer",
+      avatar: "/placeholder-user.jpg",
+      verified: true,
+    },
+    createdAt: "2024-01-03T09:00:00.000Z",
+    bookmarkedAt: "2024-01-03T09:30:00.000Z",
+    metrics: {
+      likes: 180,
+      retweets: 28,
+      replies: 6,
+      quotes: 2,
+    },
+    media: [
+      {
+        type: "photo",
+        url: "https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=800&h=600&fit=crop",
+        width: 800,
+        height: 600,
+        alt_text: "GCP Cloud Build pipeline screenshot",
+      }
+    ],
+    tags: ["gcp", "devops", "kubernetes"],
+    category: "GCP"
+  },
+  // Tech
+  {
+    id: "mock_tweet_tech_1",
+    text: "🖥️ Exploring the latest in edge computing and IoT. The future of distributed systems is here! #Tech #EdgeComputing #IoT",
+    author: {
+      id: "mock_author_tech",
+      name: "Tech Explorer",
+      username: "techexplorer",
+      avatar: "/placeholder-user.jpg",
+      verified: false,
+    },
+    createdAt: "2024-01-02T12:00:00.000Z",
+    bookmarkedAt: "2024-01-02T12:30:00.000Z",
+    metrics: {
+      likes: 150,
+      retweets: 22,
+      replies: 5,
+      quotes: 1,
+    },
+    media: [],
+    tags: ["tech", "edgecomputing", "iot"],
+    category: "Tech"
+  },
+  // Business
+  {
+    id: "mock_tweet_business_1",
+    text: "💼 Announcing our new SaaS product for small businesses! Streamline your workflow and boost productivity. #Business #SaaS #Startup",
+    author: {
+      id: "mock_author_business",
+      name: "Biz Founder",
+      username: "bizfounder",
+      avatar: "/placeholder-user.jpg",
+      verified: true,
+    },
+    createdAt: "2024-01-01T10:00:00.000Z",
+    bookmarkedAt: "2024-01-01T10:30:00.000Z",
+    metrics: {
+      likes: 400,
+      retweets: 60,
+      replies: 15,
+      quotes: 10,
+    },
+    media: [
+      {
+        type: "photo",
+        url: "https://images.unsplash.com/photo-1465101046530-73398c7f28ca?w=800&h=600&fit=crop",
+        width: 800,
+        height: 600,
+        alt_text: "Business SaaS dashboard screenshot",
+      }
+    ],
+    tags: ["business", "saas", "startup"],
+    category: "Business"
   }
 ]
 
