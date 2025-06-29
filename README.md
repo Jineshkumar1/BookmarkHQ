@@ -1,23 +1,22 @@
 # BookmarkHQ - X.com Bookmark Manager
 
 <p align="center">
-  <a href="./BookMarkHQ.png" target="_blank">
-    <img src="./BookMarkHQ.png" alt="BookMarkHQ Logo" width="180">
-  </a>
+  <img src="./BookMarkHQ.png" alt="BookMarkHQ Logo" width="180">
 </p>
 
 <p align="center">
-  <a href="https://www.youtube.com/watch?v=YOUR_VIDEO_ID" target="_blank">
+  <a href="https://www.youtube.com/watch?v=YOUR_VIDEO_ID">
     <img src="./BookMarkHQ.png" alt="Watch the demo" width="320"><br>
     <strong>▶️ Watch Demo Video</strong>
   </a>
 </p>
 
 <p align="center">
-  <a href="./BookmarkHQ-Demo.webm" download>
+  <a href="./BookmarkHQ-Demo.webm">
     <strong>⬇️ Download Demo Video (WEBM)</strong>
   </a>
 </p>
+
 
 A full-stack web application for managing and organizing your X.com (formerly Twitter) bookmarks with intelligent caching and modern UI.
 
