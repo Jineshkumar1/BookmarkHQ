@@ -1,12 +1,8 @@
 # BookmarkHQ - X.com Bookmark Manager
 
 ![BookMarkHQ Logo](public/BookmarkHQ.png)
+[Watch Demo Video](./public/BookmarkHQ-Demo.mp4)
 
-<p align="center">
-  <a href="https://github.com/Jineshkumar1/BookmarkHQ/blob/main/BookmarkHQ-Demo.webm?raw=true">
-    <strong>⬇️ Download Demo Video (WEBM)</strong>
-  </a>
-</p>
 
 
 A full-stack web application for managing and organizing your X.com (formerly Twitter) bookmarks with intelligent caching and modern UI.
