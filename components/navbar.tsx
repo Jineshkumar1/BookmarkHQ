@@ -12,7 +12,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { ThemeToggle } from "./theme-toggle"
-import { Settings, LogOut, User, BookmarkIcon, Zap } from "lucide-react"
+import { Settings, LogOut, User, BookmarkIcon, Zap, Database } from "lucide-react"
 import Link from "next/link"
 
 export function Navbar() {
@@ -76,6 +76,12 @@ export function Navbar() {
                     <Link href="/test" className="cursor-pointer">
                       <Zap className="mr-2 h-4 w-4" />
                       <span>Test API</span>
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href="/mock-dashboard" className="cursor-pointer">
+                      <Database className="mr-2 h-4 w-4" />
+                      <span>Mock Dashboard</span>
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />

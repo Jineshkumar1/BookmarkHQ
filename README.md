@@ -13,6 +13,7 @@ A full-stack web application for managing and organizing your X.com (formerly Tw
 - ⚡ **Fast Performance** with server-side caching
 - 🔄 **Real-time Sync** with X.com API
 - 🛡️ **Rate Limit Protection** with intelligent request management
+- 🧪 **Comprehensive Mock API** for development and testing
 
 ## Tech Stack
 
@@ -84,6 +85,47 @@ A full-stack web application for managing and organizing your X.com (formerly Tw
 6. **Open your browser**
    Navigate to [http://localhost:3000](http://localhost:3000)
 
+## Mock API System
+
+For development and testing without hitting X.com rate limits, we provide a comprehensive mock API system that simulates the real X.com API behavior.
+
+### Quick Start with Mock API
+
+1. **Access Mock Dashboard**
+   Navigate to `/mock-dashboard` to access the comprehensive testing interface.
+
+2. **Test Features**
+   - View realistic bookmark data with various categories
+   - Test search functionality
+   - Monitor simulated rate limits
+   - Test error scenarios
+
+3. **Available Mock Endpoints**
+   ```
+   GET /api/mock/bookmarks     # Fetch mock bookmarks
+   GET /api/mock/user          # Get mock user info
+   GET /api/mock/search        # Search mock tweets
+   GET /api/mock/tweets/{id}   # Get specific tweet
+   GET /api/mock/rate-limits   # Check rate limits
+   ```
+
+### Mock Data Features
+
+- **10 Diverse Bookmarks**: Tech, Business, Education, Creative, Health, Lifestyle, Entertainment
+- **Realistic Media**: High-quality images from Unsplash with alt text
+- **Engagement Metrics**: Likes, retweets, replies, quotes with realistic numbers
+- **Error Simulation**: Test rate limits, auth errors, and 404s
+- **Pagination Support**: Mock pagination tokens and next/previous tokens
+
+### Development Workflow
+
+1. **Use Mock APIs** during initial development
+2. **Test UI Components** with realistic data
+3. **Verify Error Handling** with simulated errors
+4. **Switch to Real API** when ready for production testing
+
+For detailed information, see the [Mock API Guide](./MOCK_API_GUIDE.md).
+
 ## How It Works
 
 ### Authentication Flow
@@ -113,8 +155,10 @@ BookMarkHQlocal/
 │   ├── api/               # API routes
 │   │   ├── auth/          # NextAuth.js routes
 │   │   ├── bookmarks/     # Bookmarks API
-│   │   └── cache/         # Cache management API
+│   │   ├── cache/         # Cache management API
+│   │   └── mock/          # Mock API endpoints
 │   ├── dashboard/         # Main dashboard page
+│   ├── mock-dashboard/    # Mock API testing interface
 │   └── auth/              # Authentication pages
 ├── components/            # React components
 │   ├── ui/               # shadcn/ui components
@@ -124,7 +168,8 @@ BookMarkHQlocal/
 ├── lib/                  # Utility libraries
 │   ├── auth.ts          # NextAuth.js configuration
 │   ├── supabase.ts      # Supabase client and helpers
-│   └── x-api.ts         # X.com API integration
+│   ├── x-api.ts         # X.com API integration
+│   └── mock-auth.ts     # Mock API client and data
 ├── scripts/             # Database setup scripts
 └── types/               # TypeScript type definitions
 ```
@@ -145,6 +190,13 @@ BookMarkHQlocal/
 - `GET /api/cache` - Get cache status
 - `DELETE /api/cache` - Clear cache
 - `POST /api/cache` - Refresh cache
+
+### Mock APIs (Development)
+- `GET /api/mock/bookmarks` - Fetch mock bookmarks
+- `GET /api/mock/user` - Get mock user info
+- `GET /api/mock/search` - Search mock tweets
+- `GET /api/mock/tweets/{id}` - Get specific mock tweet
+- `GET /api/mock/rate-limits` - Check mock rate limits
 
 ## Configuration
 
@@ -183,6 +235,13 @@ npm run start        # Start production server
 npm run lint         # Run ESLint
 ```
 
+### Development Tips
+
+1. **Use Mock APIs First**: Start with the mock system to develop UI and test features
+2. **Test Error Scenarios**: Use mock error endpoints to test error handling
+3. **Monitor Rate Limits**: Use the mock dashboard to understand rate limit behavior
+4. **Switch Gradually**: Move from mock to real APIs when ready
+
 ### Database Schema
 
 The application uses two main tables:
@@ -199,65 +258,43 @@ The application uses two main tables:
    - `bookmarks_added` - Number of bookmarks added
    - `error_message` - Error details if failed
 
-## Deployment
-
-### Vercel Deployment
-
-1. **Connect your repository** to Vercel
-2. **Set environment variables** in Vercel dashboard
-3. **Deploy** - Vercel will automatically build and deploy
-
-### Environment Variables for Production
-
-Update your X.com app callback URL to your production domain:
-```
-https://yourdomain.com/api/auth/callback/twitter
-```
-
-### Database Setup
-
-1. Create a Supabase project
-2. Run the database setup script
-3. Configure environment variables
-4. Test the connection
-
 ## Troubleshooting
 
 ### Common Issues
 
-1. **Authentication Errors**
-   - Verify X.com app configuration
-   - Check callback URLs match exactly
-   - Ensure required scopes are enabled
+1. **Rate Limit Errors**
+   - Use the mock API system for development
+   - Implement proper error handling
+   - Monitor rate limit headers
 
-2. **Cache Issues**
-   - Verify Supabase credentials
-   - Check database schema is set up
-   - Review cache status component
+2. **Authentication Issues**
+   - Verify OAuth callback URLs
+   - Check environment variables
+   - Ensure proper scopes are enabled
 
-3. **Rate Limiting**
-   - Wait 15 minutes before retrying
-   - Check X.com API usage dashboard
-   - Consider reducing request frequency
+3. **Cache Problems**
+   - Clear cache manually if needed
+   - Check Supabase connection
+   - Verify database schema
 
-### Debug Tools
+### Getting Help
 
-- `/debug` - Session and environment variable debug page
-- `/test` - API connection test page
-- Browser console - Detailed error logs
-- Network tab - API request monitoring
+- Check the [Troubleshooting Guide](./TROUBLESHOOTING.md)
+- Review the [Mock API Guide](./MOCK_API_GUIDE.md)
+- Check console logs for detailed error information
+- Use the mock dashboard to test features without rate limits
 
 ## Contributing
 
 1. Fork the repository
 2. Create a feature branch
-3. Make your changes
-4. Add tests if applicable
+3. Use the mock API system for development
+4. Test thoroughly with both mock and real APIs
 5. Submit a pull request
 
 ## License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+This project is licensed under the MIT License.
 
 ## Support
 
