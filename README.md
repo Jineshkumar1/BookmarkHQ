@@ -1,11 +1,13 @@
 # BookmarkHQ - X.com Bookmark Manager
 
 <p align="center">
-  <img src="./public/BookMarkHQ.png" alt="BookMarkHQ Logo" width="180">
+  <a href="https://github.com/Jineshkumar1/BookmarkHQ/blob/main/BookMarkHQ.png?raw=true">
+    <img src="https://github.com/Jineshkumar1/BookmarkHQ/blob/main/BookMarkHQ.png?raw=true" alt="BookMarkHQ Logo" width="180">
+  </a>
 </p>
 
 <p align="center">
-  <a href="./public/BookmarkHQ-Demo.webm">
+  <a href="https://github.com/Jineshkumar1/BookmarkHQ/blob/main/BookmarkHQ-Demo.webm?raw=true">
     <strong>⬇️ Download Demo Video (WEBM)</strong>
   </a>
 </p>
