@@ -9,13 +9,13 @@
 <p align="center">
   <a href="https://www.youtube.com/watch?v=YOUR_VIDEO_ID" target="_blank">
     <img src="./BookMarkHQ.png" alt="Watch the demo" width="320"><br>
-    <b>▶️ Watch Demo Video</b>
+    <strong>▶️ Watch Demo Video</strong>
   </a>
 </p>
 
 <p align="center">
-  <a href="./BookmarkHQ-Demo.webm" target="_blank">
-    <b>▶️ Download Demo Video (webm)</b>
+  <a href="./BookmarkHQ-Demo.webm" download>
+    <strong>⬇️ Download Demo Video (WEBM)</strong>
   </a>
 </p>
 
