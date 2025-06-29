@@ -1,6 +1,6 @@
 # X.com Bookmark Manager
 
-![X.com Bookmark Manager](https://github.com/yourusername/x-bookmark-manager/assets/banner.png)
+![X.com Bookmark Manager](./public/BookmarkHQ.png)
 
 A modern, beautiful bookmark manager for your X.com (Twitter) bookmarks with authentication, dark mode, and advanced organization features.
 
