@@ -2,7 +2,7 @@
 
 ![BookMarkHQ Logo](public/BookmarkHQ.png)
 [Watch Demo Video](./public/BookmarkHQ-Demo.mp4)
-
+[▶️ Watch Demo Video (MP4)](https://github.com/[username]/[reponame]/raw/[branch]/public/BookmarkHQ-Demo.mp4)
 
 
 A full-stack web application for managing and organizing your X.com (formerly Twitter) bookmarks with intelligent caching and modern UI.
