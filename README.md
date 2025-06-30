@@ -1,7 +1,7 @@
 # BookmarkHQ - X.com Bookmark Manager
 
 ![BookMarkHQ Logo](public/BookmarkHQ.png)
-[Watch Demo Video](./public/BookmarkHQ-Demo.mp4)
+[Watch Demo Video](public/BookmarkHQ-Demo.mp4)
 [▶️ Watch Demo Video (MP4)](https://github.com/Jineshkumar1/BookmarkHQ/raw/main/public/BookmarkHQ-Demo.mp4)
 
 
